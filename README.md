@@ -3,9 +3,9 @@
 Reto de la materia de Modelación de Sistemas Multiagentes.
 
 ## Equipo
-Andrés Magaña Pérez - A01067963
-Ricardo Andrés Cáceres Villibord - A01706972
-Said Guadalupe Ortigoza Trujillo - A01707430
+Andrés Magaña Pérez - A01067963 <br>
+Ricardo Andrés Cáceres Villibord - A01706972 <br>
+Said Guadalupe Ortigoza Trujillo - A01707430 <br>
 
 ## Descripción
 ---
