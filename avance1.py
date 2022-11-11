@@ -24,29 +24,34 @@ from mesa.time import SimultaneousActivation
 from mesa.datacollection import DataCollector
 
 # AGENT CLASS
-
-class RoadAgent(Agent):
-    def __init__(self, unique_id, model, x, y, right_position, left_position, front_position, velocity):
+class Car(Agent):
+    def __init__(self, unique_id, model, x, y, signal):
         super().__init__(unique_id, model)
         self.actual_position = (x, y)
-        # self.front_position = front_position
-        # self.right_position = right_position
-        # self.left_position = left_position
-        self.velocity = velocity
+        self.velocity = 3
+        self.stopped = False
+        self.signal = signal
 
     def step(self):
-         self.check_roads()
+        self.model.grid.move_agent(self, (self.actual_position[0] + self.velocity, self.actual_position[1]))
         
-
-         # self.actual_position = self.actual_position[0] + self.velocity
+        # Checar carriles solo para el carril central
+        if (self.actual_position[1] == 1):
+            self.check_roads()
 
     def check_roads(self):
-        # Front
-        next_cell_position = (self.actual_position[1], self.actual_position[0] + 1) 
-        next_cell_ = self.model.grid.get_cell_list_contents(
-                [next_cell_position_east])
-        if (self.actual_position[0] + 2 == )
-
+        for neighbor in self.model.grid.iter_neighbors(self.actual_position, moore = True, include_center = False, radius = 5):
+            x, y = neighbor.actual_position
+            # Central Lane in Front of Actual Agent
+            if ((y == self.actual_position[1]) and (x <= self.actual_position[0] + 4) and (neighbor.stopped == True)):
+                # Checar carril superior para cambiar posición
+                if not ((y == self.actual_position[1] - 1) and (self.actual_position[0] + 1 < x >= self.actual_position[0] - 4) and (neighbor.stopped != True)):
+                    # Cambia a carril superior
+                    self.model.grid.move_agent(self, (self.actual_position[0] + 1, 0))
+                # Checar carril inferior para cambiar posición
+                elif not ((y == self.actual_position[1] + 1) and (self.actual_position[0] + 1 < x >= self.actual_position[0] - 4) and (neighbor.stopped != True)):
+                    # Cambia a carril inferior
+                    self.model.grid.move_agent(self, (self.actual_position[0] + 1, 2))
 
 def get_grid(model):
     grid = np.zeros((model.grid.width, model.grid.height))
@@ -54,35 +59,40 @@ def get_grid(model):
         grid[x][y] = content.live
     return grid
 
-
-class GameLifeModel(Model):
-    def __init__(self, width, height):
-        self.num_agents = width * height
-        self.grid = SingleGrid(width, height, True)
-        self.schedule = SimultaneousActivation(self)
+# MODEL CLASS
+class Road(Model):
+    def __init__(self, cars):
+        super().__init__()
+        self.cars = cars
+        self.placeAgents = cars
+        self.signal = False
+        self.grid = SingleGrid(500, 3, False)
+        self.schedule = BaseScheduler(self)
         self.datacollector = DataCollector(model_reporters={"Grid": get_grid})
 
-        for (content, x, y) in self.grid.coord_iter():
-            a = GameLifeAgent((x, y), self)
-            self.grid.place_agent(a, (x, y))
-            self.schedule.add(a)
-
     def step(self):
+        agent = Car(self.placeAgents, self, )
+
+        for i in range(0, 10, 1):
+            if i == np.random.choice([5,6]):
+                lane = np.random.choice([0,1,2])
+                self.schedule.add(agent)
+                self.grid.place_agent(agent)
+
         self.datacollector.collect(self)
         self.schedule.step()
 
-GRID_SIZE = 100
-MAX_GENERATIONS = 100
+agents = 100
+model = Road(agents)
+MAX_GENERATIONS = 200
 
-start_time = time.time()
-model = GameLifeModel(GRID_SIZE, GRID_SIZE)
+# TODO: Add time measurement
 for i in range (MAX_GENERATIONS):
     model.step()
-print("Tiempo de ejecucion: ", str(datetime.timedelta(seconds= (time.time() - start_time))))
 
+# Simulacion grafica
 all_grid = model.datacollector.get_model_vars_dataframe()
-
-fig, axs = plt.subplots(figsize=(7, 7))
+fig, axs = plt.subplots(figsize=(15, 5))
 axs.set_xticks([])
 axs.set_yticks([])
 patch = plt.imshow(all_grid.iloc[0][0], cmap=plt.cm.binary)
@@ -90,5 +100,5 @@ patch = plt.imshow(all_grid.iloc[0][0], cmap=plt.cm.binary)
 def animate(i):
     patch.set_data(all_grid.iloc[i][0])
 
-anim = animation.FuncAnimation(fig, animate, frames=MAX_GENERATIONS)
+anim = animation.FuncAnimation(fig, animate, frames = MAX_GENERATIONS)
 plt.show()
