@@ -54,12 +54,18 @@ class Car(Agent):
                 elif not ((y == self.actual_position[1] + 1) and (self.actual_position[0] + 1 < x >= self.actual_position[0] - 4) and (neighbor.stopped != True)):
                     # Cambia a carril inferior
                     self.model.grid.move_agent(self, (self.actual_position[0] + 1, 2))
+                
 
 def get_grid(model):
     grid = np.zeros((model.grid.width, model.grid.height))
     for (content, x, y) in model.grid.coord_iter():
-        grid[x][y] = content.live
+        if model.grid.is_cell_empty((x, y)):
+            grid[x][y] = 0
+        else:
+            grid[x][y] = 1
     return grid
+
+# TODO: Stop Function
 
 # MODEL CLASS
 class Road(Model):
