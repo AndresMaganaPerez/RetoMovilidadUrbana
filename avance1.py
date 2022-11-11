@@ -20,7 +20,7 @@ import numpy as np
 
 from mesa import Agent, Model
 from mesa.space import SingleGrid
-from mesa.time import SimultaneousActivation
+from mesa.time import BaseScheduler
 from mesa.datacollection import DataCollector
 
 # AGENT CLASS
@@ -35,6 +35,8 @@ class Car(Agent):
     def step(self):
         self.model.grid.move_agent(self, (self.actual_position[0] + self.velocity, self.actual_position[1]))
         
+        # Carro que se detendrá en el carril central
+
         # Checar carriles solo para el carril central
         if (self.actual_position[1] == 1):
             self.check_roads()
@@ -71,13 +73,20 @@ class Road(Model):
         self.datacollector = DataCollector(model_reporters={"Grid": get_grid})
 
     def step(self):
-        agent = Car(self.placeAgents, self, )
+        y = np.random.choice([0, 1, 2])
+        agent = Car(self.placeAgents, self, 0, y, self.signal)
 
         for i in range(0, 10, 1):
             if i == np.random.choice([5,6]):
                 lane = np.random.choice([0,1,2])
                 self.schedule.add(agent)
-                self.grid.place_agent(agent)
+                self.grid.place_agent(agent, (lane, 0))
+                self.placeAgents -=1
+
+            if self.placeAgents == 50:
+                self.signal = True
+            else:
+                self.signal = False
 
         self.datacollector.collect(self)
         self.schedule.step()
