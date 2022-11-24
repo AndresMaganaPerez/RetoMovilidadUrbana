@@ -68,20 +68,21 @@ class Road(Model):
 
     def step(self):
         y = np.random.choice([0, 1, 2])
-
-        lane = np.random.choice([0,1,2])
+        rand = np.random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
         agent = Car(self.next_id(), self, 0, y)
-        if self.cars > 0:
-            if self.grid.is_cell_empty((y, 0)):
-                self.schedule.add(agent)
-                self.grid.place_agent(agent, agent.pos)
-                self.cars -= 1
+        if rand == 4 or rand == 5 or rand == 6:
+            if self.cars > 0:
+                if self.grid.is_cell_empty((y, 0)):
+                    self.schedule.add(agent)
+                    self.grid.place_agent(agent, agent.pos)
+                    self.cars -= 1
 
         self.datacollector.collect(self)
         self.schedule.step()
 
-agents = 3
+# TODO: A veces sí los pinta y a veces no, debe de ser por la variable rand, no funciona bien.
+agents = 20
 model = Road(agents)
 MAX_GENERATIONS = 200
 
