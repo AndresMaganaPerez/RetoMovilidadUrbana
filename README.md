@@ -1,6 +1,6 @@
 # Reto: Congestión Vehicular
 ---
-Modelación de sistemas multiagentes con gráficas computacionales
+## Modelación de sistemas multiagentes con gráficas computacionales
 
 ## Equipo 1:
 Andrés Magaña Pérez - A01067963 <br>
