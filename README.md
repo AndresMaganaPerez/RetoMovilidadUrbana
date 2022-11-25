@@ -1,8 +1,8 @@
-# RetoMovilidadUrbana
+# Reto: Congestión Vehicular
 ---
-Reto de la materia de Modelación de Sistemas Multiagentes.
+Modelación de sistemas multiagentes con gráficas computacionales
 
-## Equipo
+## Equipo 1:
 Andrés Magaña Pérez - A01067963 <br>
 Ricardo Andrés Cáceres Villibord - A01706972 <br>
 Said Guadalupe Ortigoza Trujillo - A01707430 <br>
