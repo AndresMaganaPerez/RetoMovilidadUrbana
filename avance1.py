@@ -97,6 +97,3 @@ patch = plt.imshow(all_grid.iloc[0][0], cmap=plt.cm.binary)
 
 def animate(i):
     patch.set_data(all_grid.iloc[i][0])
-
-anim = animation.FuncAnimation(fig, animate, frames = MAX_GENERATIONS)
-plt.show()
