@@ -21,16 +21,15 @@ import datetime
 
 # Definimos la clase del agente
 class Car(Agent):
-    def __init__(self, unique_id, model, x, y):
+    def __init__(self, unique_id, model, x, y, signal):
         super().__init__(unique_id, model)
         self.pos = (y, x)
         self.velocity = 3
         self.in_road = 1
         self.stopped = False
-        self.signal = None
+        self.signal = signal
 
     def step(self):
-        #print(str(self.unique_id) + ": " + str(self.pos))
         # Posición del agente
         self_y, self_x = self.pos
         
@@ -38,9 +37,6 @@ class Car(Agent):
             self.model.grid.move_agent(self, (self_y, self_x + self.velocity))
         else:
             self.in_road = 0
-
-        # elif not (self.model.grid.out_of_bounds((self.pos[0] + self.velocity - 2, self.pos[1]))):
-        #     self.model.grid.move_agent(self, (self.pos[0] + self.velocity - 2, self.pos[1]))
 
 def get_grid(model):
     grid = np.zeros((model.grid.width, model.grid.height))
@@ -57,23 +53,33 @@ class Road(Model):
         super().__init__()
         self.width = width
         self.height = height
+        self.total_cars = num_cars
         self.num_cars = num_cars
-        self.current_id = 1
-        self.signal = False
+        self.current_id = 0
         self.grid = SingleGrid(height, width, False)
         self.schedule = BaseScheduler(self)
         self.datacollector = DataCollector(model_reporters={"Grid": get_grid})
 
     def step(self):
         y = np.random.choice([0, 1, 2])
-        agent = Car(self.next_id(), self, 0, y)
-        #rand = np.random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-
-        #if rand == 4 or rand == 5 or rand == 6:
+        
         if self.num_cars > 0 and self.grid.is_cell_empty((y, 0)):
-            self.schedule.add(agent)
-            self.grid.place_agent(agent, agent.pos)
-            self.num_cars -= 1
+            if self.num_cars == (self.total_cars // 2):
+                self.signal = True
+                agent = Car(self.next_id(), self, 0, y, self.signal)
+                self.schedule.add(agent)
+                self.grid.place_agent(agent, agent.pos)
+                self.num_cars -= 1
+
+                print(str(self.current_id) + ': ' + str(self.signal))
+            else: 
+                self.signal = False
+                agent = Car(self.next_id(), self, 0, y, self.signal)
+                self.schedule.add(agent)
+                self.grid.place_agent(agent, agent.pos)
+                self.num_cars -= 1
+
+                print(str(self.current_id) + ': ' + str(self.signal))
 
         self.datacollector.collect(self)
         self.schedule.step()
@@ -81,15 +87,15 @@ class Road(Model):
         # Eliminar coches que terminaron su recorrido
         for car in self.schedule.agent_buffer():
             if car.in_road == 0:
-                agent.model.grid.remove_agent(car)
+                car.model.grid.remove_agent(car)
                 self.schedule.remove(car)
 
 # Definimos las dimensiones de la carretera
-WIDTH = 150
+WIDTH = 200
 HEIGHT = 3
 
 # Definimos el número de agentes
-NUM_CARS = 10
+NUM_CARS = 50
 
 # Definimos el número máximo de ejecuciones
 MAX_GENERATIONS = 200

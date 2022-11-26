@@ -85,11 +85,11 @@ class Road(Model):
                 self.schedule.remove(car)
 
 # Definimos las dimensiones de la carretera
-WIDTH = 150
+WIDTH = 200
 HEIGHT = 3
 
 # Definimos el número de agentes
-NUM_CARS = 10
+NUM_CARS = 50
 
 # Definimos el número máximo de ejecuciones
 MAX_GENERATIONS = 200
