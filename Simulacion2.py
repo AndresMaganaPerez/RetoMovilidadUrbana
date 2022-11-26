@@ -66,7 +66,7 @@ class Road(Model):
         if self.num_cars > 0 and self.grid.is_cell_empty((y, 0)):
             if self.num_cars == (self.total_cars // 2):
                 self.signal = True
-                agent = Car(self.next_id(), self, 0, y, self.signal)
+                agent = Car(self.next_id(), self, 0, 1, self.signal)
                 self.schedule.add(agent)
                 self.grid.place_agent(agent, agent.pos)
                 self.num_cars -= 1
