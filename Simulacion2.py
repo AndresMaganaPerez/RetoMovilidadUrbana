@@ -33,10 +33,35 @@ class Car(Agent):
         # Posición del agente
         self_y, self_x = self.pos
         
-        if not (self.model.grid.out_of_bounds((self_y, self_x + self.velocity))) and self.model.grid.is_cell_empty((self_y, self_x + self.velocity)):
-            self.model.grid.move_agent(self, (self_y, self_x + self.velocity))
+        if not (self.model.grid.out_of_bounds((self_y, self_x + self.velocity))):
+            if self.model.grid.is_cell_empty((self_y, self_x + self.velocity)):
+                self.model.grid.move_agent(self, (self_y, self_x + self.velocity))
+                if self.signal == True and self_x >= (self.model.grid.width / 2):
+                    self.stop()
+            else: 
+                self.changeLane()
         else:
             self.in_road = 0
+
+    def stop(self):
+        self.velocity = 0
+        self.stopped = True
+    
+    def changeLane(self):
+        # Posición del agente
+        self_y, self_x = self.pos
+        neighbors = self.model.grid.get_neighborhood(self.pos, moore = True, include_center = False, radius = 5)
+
+        for i in range(len(neighbors)):
+            x, y = neighbors[i]
+            # Checar carril superior para cambiar posición
+            if not (y == self_y - 1) and (self_x + 2 > x < self_x - 4):
+                # Cambia a carril superior
+                self.model.grid.move_agent(self, (0, self_x + 1))
+            # Checar carril inferior para cambiar posición
+            elif not (y == self_y + 1) and (self_x + 2 > x < self_x - 4):
+                # Cambia a carril inferior
+                self.model.grid.move_agent(self, (2, self_x + 1))
 
 def get_grid(model):
     grid = np.zeros((model.grid.width, model.grid.height))
@@ -72,7 +97,7 @@ class Road(Model):
                 self.num_cars -= 1
 
                 print(str(self.current_id) + ': ' + str(self.signal))
-            else: 
+            else:
                 self.signal = False
                 agent = Car(self.next_id(), self, 0, y, self.signal)
                 self.schedule.add(agent)
