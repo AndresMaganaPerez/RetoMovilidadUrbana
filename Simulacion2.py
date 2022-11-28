@@ -28,7 +28,6 @@ class Car(Agent):
         self.in_road = 1
         self.stopped = False
         self.signal = signal
-        self.lane_choice = np.random.choice([0,2])
         self.change_lane = False
         self.reduce_velocity = 6
         self.locked = signal
@@ -64,20 +63,21 @@ class Car(Agent):
             if self.model.grid.is_cell_empty((self_y, self_x + self.velocity)):
                 # El coche avanza
                 self.model.grid.move_agent(self, (self_y, self_x + self.velocity))
-                if self_x >= (self.model.grid.height // 2) and self.signal == True:
+                if self_x >= (self.model.grid.height * 0.4) and self.signal == True:
                     self.stop()
             else:
-                neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 5)
-                for neighbor in neighbors:
-                    y, x = neighbor.pos
-                    # Checar carril superior para cambiar posición
-                    if not (y == self_y - 1) and (self_x + 2 > x < self_x - 4):
-                        # Cambia a carril superior
-                        self.model.grid.move_agent(self, (0, self_x + 1))
-                    # Checar carril inferior para cambiar posición
-                    elif not (y == self_y + 1) and (self_x + 2 > x < self_x - 4):
-                        # Cambia a carril inferior
-                        self.model.grid.move_agent(self, (2, self_x + 1))
+                if self.signal == False:
+                    neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 5)
+                    for neighbor in neighbors:
+                        y, x = neighbor.pos
+                        lane_choice = np.random.choice([0,2])
+
+                        if lane_choice == 0:
+                            if (y == self_y - 1) and not (self_x - 5 > x < self_x + 2):
+                                self.model.grid.move_agent(self, (self_y - 1, self_x + 1))
+                        if lane_choice == 2:
+                            if (y == self_y + 1) and not (self_x - 5 > x < self_x + 2):
+                                self.model.grid.move_agent(self, (self_y + 1, self_x + 1))
         else:
             self.in_road = 0
     
@@ -143,7 +143,7 @@ class Road(Model):
                 self.grid.place_agent(car, car.pos)
                 self.num_cars -= 1
 
-                print(str(self.num_cars) + ': ' + str(chosen))
+                #print(str(self.num_cars) + ': ' + str(chosen))
 
         self.datacollector.collect(self)
         self.schedule.step()
@@ -156,10 +156,10 @@ class Road(Model):
 
 # Definimos las dimensiones de la carretera
 WIDTH = 3
-HEIGHT = 200
+HEIGHT = 150
 
 # Definimos el número de agentes
-NUM_CARS = 30
+NUM_CARS = 20
 
 # Definimos el número máximo de ejecuciones
 MAX_GENERATIONS = 200
