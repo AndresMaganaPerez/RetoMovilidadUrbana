@@ -58,7 +58,7 @@ class Road(Model):
         self.width = width
         self.height = height
         self.num_cars = num_cars
-        self.current_id = 1
+        self.current_id = 0
         self.signal = False
         self.grid = SingleGrid(height, width, False)
         self.schedule = BaseScheduler(self)
