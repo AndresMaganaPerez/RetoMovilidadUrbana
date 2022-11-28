@@ -66,38 +66,21 @@ class Car(Agent):
                 if self_x >= (self.model.grid.height * 0.4) and self.signal == True:
                     self.stop()
             else:
-                if self.signal == False:
-                    neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 5)
+                if self.signal == False and self_y == 1:
+                    neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 8)
                     for neighbor in neighbors:
                         y, x = neighbor.pos
-                        lane_choice = np.random.choice([0,2])
 
-                        if lane_choice == 0:
-                            if (y == self_y - 1) and not (self_x - 5 > x < self_x + 2):
-                                self.model.grid.move_agent(self, (self_y - 1, self_x + 1))
-                        if lane_choice == 2:
-                            if (y == self_y + 1) and not (self_x - 5 > x < self_x + 2):
-                                self.model.grid.move_agent(self, (self_y + 1, self_x + 1))
+                        # Checar carril superior
+                        if (y == self_y - 1) and not (self_x - 5 > x < self_x + 2):
+                            self.model.grid.move_agent(self, (self_y - 1, self_x + 1))
+                        # Checar carril inferior
+                        elif (y == self_y + 1) and not (self_x - 5 > x < self_x + 2):
+                            self.model.grid.move_agent(self, (self_y + 1, self_x + 1))
+                        elif (y == self_y) and (self_x + 1 > x < self_x + 8) and self.velocity > 0:
+                            self.velocity -= 1
         else:
             self.in_road = 0
-    
-    # TODO: Arreglar el cambio de carril
-    def changeLane(self):
-        # Posición del agente
-        self_y, self_x = self.pos
-        neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 5)
-
-        for neighbor in neighbors:
-            y, x = neighbor.pos
-
-            # Checar carril superior para cambiar posición
-            if not (y == self_y - 1) and (self_x + 2 > x < self_x - 4):
-                # Cambia a carril superior
-                self.model.grid.move_agent(self, (0, self_x + 1))
-            # Checar carril inferior para cambiar posición
-            elif not (y == self_y + 1) and (self_x + 2 > x < self_x - 4):
-                # Cambia a carril inferior
-                self.model.grid.move_agent(self, (2, self_x + 1))
 
 def get_grid(model):
     grid = np.zeros((model.grid.width, model.grid.height))
@@ -156,10 +139,10 @@ class Road(Model):
 
 # Definimos las dimensiones de la carretera
 WIDTH = 3
-HEIGHT = 150
+HEIGHT = 120
 
 # Definimos el número de agentes
-NUM_CARS = 20
+NUM_CARS = 30
 
 # Definimos el número máximo de ejecuciones
 MAX_GENERATIONS = 200
