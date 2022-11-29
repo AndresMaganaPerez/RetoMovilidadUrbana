@@ -28,6 +28,8 @@ class Car(Agent):
         self.in_road = 1
         self.signal = signal
         self.reduce_velocity = 6
+        self.message = False
+        self.lock_message = True
 
     def stop(self):
         if self.reduce_velocity % 2 == 0 and self.reduce_velocity >= 0:
@@ -35,9 +37,53 @@ class Car(Agent):
         if self.reduce_velocity != -1:
             self.reduce_velocity -= 1
 
+    def change_lane(self):
+        # Posición del agente
+        self_y, self_x = self.pos
+
+        neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 5)
+        for neighbor in neighbors:
+            y, x = neighbor.pos
+
+            # Checar carril superior
+            if (y == self_y - 1) and not (self_x - 5 > x < self_x + 2):
+                self.model.grid.move_agent(self, (self_y - 1, self_x + 2))
+            # Checar carril inferior
+            elif (y == self_y + 1) and not (self_x - 5 > x < self_x + 2):
+                self.model.grid.move_agent(self, (self_y + 1, self_x + 2))
+            else:
+                rd_lane = np.random.choice([0, 2])
+                self.model.grid.move_agent(self, (rd_lane, self_x + 2))
+
+    def detect_stopped(self):
+        # Posición del agente
+        self_y, self_x = self.pos
+
+        neighbors = self.model.grid.get_neighbors(self.pos, moore = False, include_center = False, radius = 5)
+        for neighbor in neighbors:
+            y, x = neighbor.pos
+
+            if y == self_y and neighbor.velocity == 0:
+                self.message = True
+
+    def send_message(self):
+        # Posición del agente
+        self_y, self_x = self.pos
+
+        neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 50)
+        for neighbor in neighbors:
+            neighbor.message = True
+
     def step(self):
         # Posición del agente
         self_y, self_x = self.pos
+
+        # ---------------- DEBUG LIMPIAR DESPUES --------------
+        #if self_y == 0 or self_y == 2:
+            #print(self.unique_id, self.message)
+
+        if self.message == True:
+            self.send_message()
 
         # If siguiente posición sigue dentro del grid
         if not (self.model.grid.out_of_bounds((self_y, self_x + self.velocity))):
@@ -48,8 +94,13 @@ class Car(Agent):
                 if self_x >= (self.model.grid.height * 0.4) and self.signal == True:
                     self.stop()
             else:
-                # Cambio de carril
                 if self.signal == False and self_y == 1:
+
+                    self.detect_stopped()
+                    if self.message == True:
+                        self.send_message()
+                    
+                    # Cambio de carril
                     neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 5)
                     for neighbor in neighbors:
                         y, x = neighbor.pos
@@ -122,7 +173,7 @@ class Road(Model):
 
 # Definimos las dimensiones de la carretera
 WIDTH = 3
-HEIGHT = 120
+HEIGHT = 100
 
 # Definimos el número de agentes
 NUM_CARS = 20
