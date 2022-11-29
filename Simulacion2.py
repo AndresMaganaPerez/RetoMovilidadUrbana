@@ -122,13 +122,13 @@ class Road(Model):
 
 # Definimos las dimensiones de la carretera
 WIDTH = 3
-HEIGHT = 200
+HEIGHT = 250
 
 # Definimos el número de agentes
-NUM_CARS = 50
+NUM_CARS = 850
 
 # Definimos el número máximo de ejecuciones
-MAX_GENERATIONS = 200
+MAX_GENERATIONS = 1900
 
 # Registramos el tiempo de inicio y ejecutamos la simulación
 start_time = time.time()

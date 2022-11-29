@@ -70,7 +70,7 @@ class Car(Agent):
         # Posición del agente
         self_y, self_x = self.pos
 
-        neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 50)
+        neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 40)
         for neighbor in neighbors:
             neighbor.message = True
 
@@ -175,10 +175,10 @@ class Road(Model):
 
 # Definimos las dimensiones de la carretera
 WIDTH = 3
-HEIGHT = 100
+HEIGHT = 150
 
 # Definimos el número de agentes
-NUM_CARS = 30
+NUM_CARS = 50
 
 # Definimos el número máximo de ejecuciones
 MAX_GENERATIONS = 200
