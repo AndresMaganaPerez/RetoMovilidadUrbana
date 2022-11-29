@@ -50,8 +50,9 @@ class Car(Agent):
                 if self_x >= (self.model.grid.height * 0.4) and self.signal == True:
                     self.stop()
             else:
+                # Cambio de carril
                 if self.signal == False and self_y == 1:
-                    neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 8)
+                    neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 5)
                     for neighbor in neighbors:
                         y, x = neighbor.pos
 
@@ -62,7 +63,6 @@ class Car(Agent):
                         elif (y == self_y + 1) and not (self_x - 5 > x < self_x + 2):
                             self.model.grid.move_agent(self, (self_y + 1, self_x + 2))
                         else:
-                            #self.velocity -= 1
                             rd_lane = np.random.choice([0, 2])
                             self.model.grid.move_agent(self, (rd_lane, self_x + 2))
         else:
