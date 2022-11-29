@@ -28,30 +28,14 @@ class Car(Agent):
         self.in_road = 1
         self.stopped = False
         self.signal = signal
-        self.change_lane = False
         self.reduce_velocity = 6
-        self.locked = signal
 
     def stop(self):
         if self.reduce_velocity % 2 == 0 and self.reduce_velocity >= 0:
             self.velocity -= 1
         if self.reduce_velocity != -1:
             self.reduce_velocity -= 1
-        #self.velocity = 0
         self.stopped = True
-
-    def checkSpeedFront(self, neighbor):
-        self_y, self_x = self.pos
-        if neighbor.velocity != self.velocity and neighbor.velocity >= 0 and not self.locked:
-            self.velocity = neighbor.velocity
-            if self_x == 1 and self.velocity <= 3:
-                self.change_lane = True
-
-    def checkSpeedSide(self, neighbor):
-        y, x = neighbor.pos
-        if neighbor.velocity < self.velocity and neighbor.velocity >= 0:
-            if x == 1:
-                self.speed = 3
 
     def step(self):
         # Posición del agente
@@ -73,12 +57,14 @@ class Car(Agent):
 
                         # Checar carril superior
                         if (y == self_y - 1) and not (self_x - 5 > x < self_x + 2):
-                            self.model.grid.move_agent(self, (self_y - 1, self_x + 1))
+                            self.model.grid.move_agent(self, (self_y - 1, self_x + 2))
                         # Checar carril inferior
                         elif (y == self_y + 1) and not (self_x - 5 > x < self_x + 2):
-                            self.model.grid.move_agent(self, (self_y + 1, self_x + 1))
-                        elif (y == self_y) and (self_x + 1 > x < self_x + 8) and self.velocity > 0:
-                            self.velocity -= 1
+                            self.model.grid.move_agent(self, (self_y + 1, self_x + 2))
+                        else:
+                            #self.velocity -= 1
+                            rd_lane = np.random.choice([0, 2])
+                            self.model.grid.move_agent(self, (rd_lane, self_x + 2))
         else:
             self.in_road = 0
 
@@ -118,10 +104,10 @@ class Road(Model):
             if flow_choice == 0 or flow_choice == 2 or flow_choice == 4:
                 y = np.random.choice([0, 1, 2])
                 chosen = False
-                if self.num_cars < self.total_cars // 2 and y == 1 and self.lock:
+                if self.num_cars <= self.total_cars * 0.60 and y == 1 and self.lock:
                     chosen = True
                     self.lock = False
-                car = Car(self.next_id(), self, 0, y, chosen)#hola
+                car = Car(self.next_id(), self, 0, y, chosen)
                 self.schedule.add(car)
                 self.grid.place_agent(car, car.pos)
                 self.num_cars -= 1
@@ -142,7 +128,7 @@ WIDTH = 3
 HEIGHT = 120
 
 # Definimos el número de agentes
-NUM_CARS = 30
+NUM_CARS = 20
 
 # Definimos el número máximo de ejecuciones
 MAX_GENERATIONS = 200
