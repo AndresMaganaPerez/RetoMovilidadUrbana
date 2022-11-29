@@ -26,7 +26,6 @@ class Car(Agent):
         self.pos = (y, x)
         self.velocity = 4
         self.in_road = 1
-        self.stopped = False
         self.signal = signal
         self.reduce_velocity = 6
 
@@ -35,7 +34,6 @@ class Car(Agent):
             self.velocity -= 1
         if self.reduce_velocity != -1:
             self.reduce_velocity -= 1
-        self.stopped = True
 
     def step(self):
         # Posición del agente
@@ -86,7 +84,6 @@ class Road(Model):
         self.total_cars = num_cars
         self.num_cars = num_cars
         self.current_id = 0
-        self.car_chosen = False
         self.lock = True
         self.grid = SingleGrid(width, height, False)
         self.schedule = BaseScheduler(self)
