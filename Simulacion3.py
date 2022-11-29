@@ -125,10 +125,10 @@ class Road(Model):
 
 # Definimos las dimensiones de la carretera
 WIDTH = 3
-HEIGHT = 200
+HEIGHT = 120
 
 # Definimos el número de agentes
-NUM_CARS = 50
+NUM_CARS = 20
 
 # Definimos el número máximo de ejecuciones
 MAX_GENERATIONS = 200
