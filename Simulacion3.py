@@ -80,7 +80,7 @@ class Car(Agent):
 
         # ---------------- DEBUG LIMPIAR DESPUES --------------
         #if self_y == 0 or self_y == 2:
-            #print(self.unique_id, self.message)
+            # TODO: print(self.unique_id, self.message)
 
         if self.message == True:
             self.send_message()
@@ -88,7 +88,9 @@ class Car(Agent):
         # If siguiente posición sigue dentro del grid
         if not (self.model.grid.out_of_bounds((self_y, self_x + self.velocity))):
             # If la siguiente posición está vacía
-            if self.model.grid.is_cell_empty((self_y, self_x + self.velocity)):
+            if self.message == True and self_y == 1 and self.signal == False:
+                self.change_lane()
+            elif self.model.grid.is_cell_empty((self_y, self_x + self.velocity)):
                 # El coche avanza
                 self.model.grid.move_agent(self, (self_y, self_x + self.velocity))
                 if self_x >= (self.model.grid.height * 0.4) and self.signal == True:
@@ -176,7 +178,7 @@ WIDTH = 3
 HEIGHT = 100
 
 # Definimos el número de agentes
-NUM_CARS = 20
+NUM_CARS = 30
 
 # Definimos el número máximo de ejecuciones
 MAX_GENERATIONS = 200
