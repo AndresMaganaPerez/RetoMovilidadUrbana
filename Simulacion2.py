@@ -114,8 +114,6 @@ class Road(Model):
                 self.grid.place_agent(car, car.pos)
                 self.num_cars -= 1
 
-                #print(str(self.num_cars) + ': ' + str(chosen))
-
         self.datacollector.collect(self)
         self.schedule.step()
 
