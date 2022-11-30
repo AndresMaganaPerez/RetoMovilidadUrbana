@@ -7,7 +7,10 @@ from mesa import Agent, Model
 from mesa.space import SingleGrid
 from mesa.time import BaseScheduler
 from mesa.datacollection import DataCollector
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
+import json
+import logging
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -134,25 +137,85 @@ NUM_CARS = 850
 MAX_GENERATIONS = 1900
 
 # Registramos el tiempo de inicio y ejecutamos la simulación
-start_time = time.time()
+# start_time = time.time()
 model = Road(WIDTH, HEIGHT, NUM_CARS)
-for i in range (MAX_GENERATIONS):
-    model.step()
+# for i in range (MAX_GENERATIONS):
+#     model.step()
 
 # Imprimimos el tiempo que le tomó correr al modelo
-print('Tiempo de ejecución:', str(datetime.timedelta(seconds=(time.time() - start_time))))
+# print('Tiempo de ejecución:', str(datetime.timedelta(seconds=(time.time() - start_time))))
 
 # Simulacion gráfica
-all_grid = model.datacollector.get_model_vars_dataframe()
+# all_grid = model.datacollector.get_model_vars_dataframe()
 
-fig, axs = plt.subplots(figsize=(15, 5))
-axs.set_xticks([])
-axs.set_yticks([])
-patch = plt.imshow(all_grid.iloc[0][0], cmap=plt.cm.binary)
+# fig, axs = plt.subplots(figsize=(15, 5))
+# axs.set_xticks([])
+# axs.set_yticks([])
+# patch = plt.imshow(all_grid.iloc[0][0], cmap=plt.cm.binary)
 
-def animate(i):
-    patch.set_data(all_grid.iloc[i][0])
+# def animate(i):
+#     patch.set_data(all_grid.iloc[i][0])
 
-anim = animation.FuncAnimation(fig, animate, frames = MAX_GENERATIONS)
+# anim = animation.FuncAnimation(fig, animate, frames = MAX_GENERATIONS)
 
-plt.show()
+# plt.show()
+
+def ModelAgent_Data(model):
+
+    # varsthingy = {}
+    agent_data = []
+    for agent in model.schedule.agent_buffer(False):
+        if agent.pos != None:
+            lane = agent.pos[0]
+        else:
+            lane = -1
+        aux = {
+            "id" : agent.unique_id,
+            "speed" : agent.velocity,
+            "lane" : int(lane)
+        }
+        agent_data.append(aux)
+    
+    vars = {
+        "agents_data" : agent_data
+    }
+
+    jsonOut = json.dumps(vars, sort_keys=True)
+
+    model.step()
+
+    return jsonOut
+
+class Server(BaseHTTPRequestHandler):
+    def _set_response(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/json')
+        self.end_headers()
+        
+    def do_GET(self):
+        logging.info("GET request,\nPath: %s\nHeaders:\n%s\n", str(self.path), str(self.headers))
+        jsonOut = ModelAgent_Data(model)
+        
+        self._set_response()
+        
+        self.wfile.write(str(jsonOut).encode('utf-8'))
+
+def run(server_class=HTTPServer, handler_class=Server, port=8585):
+    logging.basicConfig(level=logging.INFO)
+    server_address = ('', port)
+    httpd = server_class(server_address, handler_class)
+    logging.info("Starting httpd...\n") # HTTPD is HTTP Daemon!
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:   # CTRL+C stops the server
+        pass
+    httpd.server_close()
+    logging.info("Stopping httpd...\n")
+
+if __name__ == '__main__':
+    from sys import argv
+    
+    if len(argv) == 2:
+        run(port=int(argv[1]))
+    else:
+        run()
