@@ -30,7 +30,6 @@ class Car(Agent):
         self.signal = None
 
     def step(self):
-        #print(str(self.unique_id) + ": " + str(self.pos))
         # Posición del agente
         self_y, self_x = self.pos
         
@@ -38,9 +37,6 @@ class Car(Agent):
             self.model.grid.move_agent(self, (self_y, self_x + self.velocity))
         else:
             self.in_road = 0
-
-        # elif not (self.model.grid.out_of_bounds((self.pos[0] + self.velocity - 2, self.pos[1]))):
-        #     self.model.grid.move_agent(self, (self.pos[0] + self.velocity - 2, self.pos[1]))
 
 def get_grid(model):
     grid = np.zeros((model.grid.width, model.grid.height))

@@ -128,7 +128,7 @@ WIDTH = 3
 HEIGHT = 250
 
 # Definimos el número de agentes
-NUM_CARS = 850
+NUM_CARS = 50
 
 # Definimos el número máximo de ejecuciones
 MAX_GENERATIONS = 1900
