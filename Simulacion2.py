@@ -35,6 +35,23 @@ class Car(Agent):
         if self.reduce_velocity != -1:
             self.reduce_velocity -= 1
 
+    def change_lane(self):
+        self_y, self_x = self.pos
+
+        neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 5)
+        for neighbor in neighbors:
+            y, x = neighbor.pos
+
+            # Checar carril superior
+            if (y == self_y - 1) and not (self_x - 5 > x < self_x + 2):
+                self.model.grid.move_agent(self, (self_y - 1, self_x + 2))
+            # Checar carril inferior
+            elif (y == self_y + 1) and not (self_x - 5 > x < self_x + 2):
+                self.model.grid.move_agent(self, (self_y + 1, self_x + 2))
+            else:
+                rd_lane = np.random.choice([0, 2])
+                self.model.grid.move_agent(self, (rd_lane, self_x + 2))
+
     def step(self):
         # Posición del agente
         self_y, self_x = self.pos
@@ -50,19 +67,7 @@ class Car(Agent):
             else:
                 # Cambio de carril
                 if self.signal == False and self_y == 1:
-                    neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 5)
-                    for neighbor in neighbors:
-                        y, x = neighbor.pos
-
-                        # Checar carril superior
-                        if (y == self_y - 1) and not (self_x - 5 > x < self_x + 2):
-                            self.model.grid.move_agent(self, (self_y - 1, self_x + 2))
-                        # Checar carril inferior
-                        elif (y == self_y + 1) and not (self_x - 5 > x < self_x + 2):
-                            self.model.grid.move_agent(self, (self_y + 1, self_x + 2))
-                        else:
-                            rd_lane = np.random.choice([0, 2])
-                            self.model.grid.move_agent(self, (rd_lane, self_x + 2))
+                    self.change_lane()
         else:
             self.in_road = 0
 
