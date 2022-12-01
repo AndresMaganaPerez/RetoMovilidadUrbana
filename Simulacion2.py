@@ -174,7 +174,7 @@ def ModelAgent_Data(model):
             "lane" : int(lane)
         }
         agent_data.append(aux)
-    
+    #vars
     vars = {
         "agents_data" : agent_data
     }
