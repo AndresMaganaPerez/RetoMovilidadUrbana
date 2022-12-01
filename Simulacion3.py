@@ -15,8 +15,11 @@ from mesa.time import BaseScheduler
 
 # Utilizamos DataCollector para obtener información de cada paso de la simulación.
 from mesa.datacollection import DataCollector
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # Utilizamos matplotlib para crear una animación de cada uno de los pasos del modelo.
+import json
+import logging
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -106,19 +109,29 @@ class Car(Agent):
         self_y, self_x = self.pos
         self.counter += 1
         if not (self.model.grid.out_of_bounds((self_y, self_x + self.velocity))):
-            if self.model.grid.is_cell_empty((self_y, self_x + self.velocity)):
-                self.model.grid.move_agent(self, (self_y, self_x + self.velocity))
-                if self.message == True:
-                    self.send_message()
-                    if self_y == 1 and self.signal == False:
-                        if self_x > 10:
-                            self.anticipated_change()
-                if self_x >= (self.model.grid.height * 0.4) and self.signal == True:
-                    self.stop()
-            else:
-                if self.signal == False and self_y == 1:
-                    if self.detect_stopped():
-                        self.message = True
+            
+            if self_y == 0 or self_y == 2:
+                if self.model.grid.is_cell_empty((self_y, self_x + self.velocity)):
+                    if self.message == True:
+                        self.send_message()
+                    self.model.grid.move_agent(self, (self_y, self_x + self.velocity))
+            
+            elif self_y == 1:
+                # 0. Si en el carril central hay una celda vacia
+                if self.model.grid.is_cell_empty((self_y, self_x + self.velocity)):
+                    
+                    # 1. El agente se mueve
+                    self.model.grid.move_agent(self, (self_y, self_x + self.velocity))
+                    
+                    # 2. Si el agente elegido esta a la mitad se detiene
+                    if self_x >= (self.model.grid.height * 0.4) and self.signal == True:
+                        self.stop()
+
+                    #print(self.unique_id, self.message, self.signal, self.changed)
+                    
+                    # 3. Si el agente recibio el mensaje
+                    if self.message == True:
+                        # 4. El agente comparte el mensaje
                         self.send_message()
                     self.change_lane()
         else:
