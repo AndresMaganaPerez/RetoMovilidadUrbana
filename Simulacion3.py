@@ -85,8 +85,19 @@ class Car(Agent):
             print('Cambio bottom wuu')
             self.model.grid.move_agent(self, (self_y + 1, self_x + 2))
 
+    def detect_stopped(self):
+        # Posición del agente
+        self_y, self_x = self.pos
+        neighbors = self.model.grid.get_neighbors(self.pos, moore = False, include_center = False, radius = 5)
+        for neighbor in neighbors:
+            y, x = neighbor.pos
+            if y == self_y and neighbor.velocity == 0:
+                return True
+            else:
+                return False
+
     def send_message(self):
-        neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 30)
+        neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 50)
         for neighbor in neighbors:
             neighbor.message = True
 
@@ -114,8 +125,9 @@ class Car(Agent):
             else:
                 # Cambio de carril
                 if self.signal == False and self_y == 1:
-                    self.message = True
-                    self.send_message()
+                    if self.detect_stopped():
+                        self.message = True
+                        self.send_message()
                     self.change_lane()
         else:
             self.in_road = 0
@@ -177,10 +189,10 @@ WIDTH = 3
 HEIGHT = 250
 
 # Definimos el número de agentes
-NUM_CARS = 50
+NUM_CARS = 850
 
 # Definimos el número máximo de ejecuciones
-MAX_GENERATIONS = 200
+MAX_GENERATIONS = 1900
 
 # Registramos el tiempo de inicio y ejecutamos la simulación
 start_time = time.time()
