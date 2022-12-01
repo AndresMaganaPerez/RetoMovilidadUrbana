@@ -179,11 +179,11 @@ def ModelAgent_Data(model):
         "agents_data" : agent_data
     }
 
-    jsonOut = json.dumps(vars, sort_keys=True)
+    json.dumps(vars, sort_keys=True)
 
     model.step()
 
-    return jsonOut
+    return json.dumps(agent_data, sort_keys=True)
 
 class Server(BaseHTTPRequestHandler):
     def _set_response(self):
@@ -196,8 +196,8 @@ class Server(BaseHTTPRequestHandler):
         jsonOut = ModelAgent_Data(model)
         
         self._set_response()
-        
-        self.wfile.write(str(jsonOut).encode('utf-8'))
+        resp = "{\"data\":" + jsonOut + "}"
+        self.wfile.write(resp.encode('utf-8'))
 
 def run(server_class=HTTPServer, handler_class=Server, port=8585):
     logging.basicConfig(level=logging.INFO)

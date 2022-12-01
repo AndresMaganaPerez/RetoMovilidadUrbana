@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -7,16 +9,6 @@ using UnityEngine.Networking;
 public class WebRequest : MonoBehaviour
 {
     private string url = "http://localhost:8585";
-    public AgentList myAgentList = new AgentList();
-    // public Agent a;
-
-    // Text exchange;
-
-    // public void GetExchangeRates()
-    // {
-    //     StartCoroutine(MakeRequest());
-    // }
-
     IEnumerator MakeRequest()
     {
         UnityWebRequest request = UnityWebRequest.Get(url);
@@ -28,29 +20,45 @@ public class WebRequest : MonoBehaviour
         }
         else
         {
-            // Debug.Log("Received" + request.downloadHandler.text);
-            JsonUtility.FromJsonOverwrite(request.downloadHandler.text, myAgentList);
-            // for (int i = 0; i < myAgentList.Count; i++){
-            //         print(myAgentList[i]);
-            // }
+            Debug.Log("Received" + request.downloadHandler.text);
+            Agent agente = new Agent();
 
-            foreach (Agent a in myAgentList.agent_list) {
-                Debug.Log("Agent_id: " + a.agent_id);
+
+            string txt = request.downloadHandler.text.Replace('\'', '\"');
+            txt = txt.TrimStart('"', '{', 'd', 'a', 't', 'a', ':', '[');
+            txt = "{\"" + txt;
+            txt = txt.TrimEnd(']', '}');
+            txt = txt + '}';
+            string[] strs = txt.Split(new string[] { "}, {" }, StringSplitOptions.None);
+            Debug.Log("strs.Length:" + strs.Length);
+            for (int i = 0; i < strs.Length; i++)
+            {
+                strs[i] = strs[i].Trim();
+                if (i == 0)
+                {
+                    strs[i] = strs[i] + ']';
+                }
+                else if (i == strs.Length - 1)
+                {
+                    strs[i] = '{' + strs[i];
+                }
+                else
+                {
+                    strs[i] = '{' + strs[i] + '}';
+                }
+                Debug.Log(strs[i]);
+                //RootObject ag = JsonUtility.FromJson<RootObject>("{\"users\":" + strs[i] + "}");
+                //Debug.Log(ag);
+                //Agent a = JsonUtility.FromJson<Agent>(strs[i]);
+                //Debug.Log("VELOCIDAD: " + a.speed);
             }
-            // var Rates = JsonConvert.DeserializeObject<Rates>(request.downloadHandler.text);
-
-            // exchange = GameObject.Find("MainText").GetComponent<Text>();
-            // exchange.text = Rates.ZAR.ToString();
-
-
         }
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        // StartCoroutine(MakeRequest());
-        // Debug.Log("Starting script...");
+
     }
 
     // Update is called once per frame
@@ -61,12 +69,16 @@ public class WebRequest : MonoBehaviour
     }
 }
 
-public class Agent {
-    public int agent_id;
-    public int speed;
+[System.Serializable]
+public class Agent
+{
+    public int id;
     public int lane;
+    public int speed;
 }
 
-public class AgentList {
-    public List<Agent> agent_list;
+[System.Serializable]
+public class RootObject
+{
+    public Agent[] agentes;
 }
