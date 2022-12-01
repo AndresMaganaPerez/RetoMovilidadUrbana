@@ -28,6 +28,7 @@ class Car(Agent):
         self.in_road = 1
         self.signal = signal
         self.reduce_velocity = 6
+        self.counter = 0
 
     def stop(self):
         if self.reduce_velocity % 2 == 0 and self.reduce_velocity >= 0:
@@ -55,6 +56,8 @@ class Car(Agent):
     def step(self):
         # Posición del agente
         self_y, self_x = self.pos
+
+        self.counter += 1
 
         # If siguiente posición sigue dentro del grid
         if not (self.model.grid.out_of_bounds((self_y, self_x + self.velocity))):
@@ -90,6 +93,7 @@ class Road(Model):
         self.num_cars = num_cars
         self.current_id = 0
         self.lock = True
+        self.total_steps = 0
         self.grid = SingleGrid(width, height, False)
         self.schedule = BaseScheduler(self)
         self.datacollector = DataCollector(model_reporters={"Grid": get_grid})
@@ -120,6 +124,7 @@ class Road(Model):
         # Eliminar coches que terminaron su recorrido
         for car in self.schedule.agent_buffer():
             if car.in_road == 0:
+                self.total_steps += car.counter
                 car.model.grid.remove_agent(car)
                 self.schedule.remove(car)
 
@@ -128,7 +133,7 @@ WIDTH = 3
 HEIGHT = 250
 
 # Definimos el número de agentes
-NUM_CARS = 50
+NUM_CARS = 850
 
 # Definimos el número máximo de ejecuciones
 MAX_GENERATIONS = 1900
@@ -138,6 +143,10 @@ start_time = time.time()
 model = Road(WIDTH, HEIGHT, NUM_CARS)
 for i in range (MAX_GENERATIONS):
     model.step()
+
+#print(model.total_time, model.total_cars)
+avg_time = model.total_steps / (model.total_cars - 1)
+print('Tiempo promedio de traslado: ', avg_time)
 
 # Imprimimos el tiempo que le tomó correr al modelo
 print('Tiempo de ejecución:', str(datetime.timedelta(seconds=(time.time() - start_time))))
