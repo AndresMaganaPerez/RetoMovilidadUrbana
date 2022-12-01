@@ -15,8 +15,11 @@ from mesa.time import BaseScheduler
 
 # Utilizamos DataCollector para obtener información de cada paso de la simulación.
 from mesa.datacollection import DataCollector
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # Utilizamos matplotlib para crear una animación de cada uno de los pasos del modelo.
+import json
+import logging
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -97,9 +100,12 @@ class Car(Agent):
 
     # Este método es utilizado para propagar el mensaje
     def send_message(self):
+        # Posición del agente
+        self_y, self_x = self.pos
         neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 50)
         for neighbor in neighbors:
             neighbor.message = True
+            neighbor.want_change = True
 
     # Este método especifica lo que debe hacer el agente en cada step.
     def step(self):
