@@ -161,8 +161,7 @@ model = Road(WIDTH, HEIGHT, NUM_CARS)
 # plt.show()
 
 def ModelAgent_Data(model):
-
-    # varsthingy = {}
+    
     agent_data = []
     for agent in model.schedule.agent_buffer(False):
         if agent.pos != None:
