@@ -3,9 +3,17 @@
 # Ricardo Cáceres - A01706972
 # Said Ortigoza - A01707430
 
+# Importamos las clases que se requieren para manejar los agentes (Agent) y su entorno (Model).
+# Cada modelo puede contener múltiples agentes.
 from mesa import Agent, Model
+
+# Debido a que sólo puede existir un agente por celda, elegimos SingleGrid.
 from mesa.space import SingleGrid
+
+# Con BaseScheduler, hacemos que los agentes se activen en el orden que aparecen.
 from mesa.time import BaseScheduler
+
+# Utilizamos DataCollector para obtener información de cada paso de la simulación.
 from mesa.datacollection import DataCollector
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -16,13 +24,16 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 plt.rcParams["animation.html"] = "jshtml"
 matplotlib.rcParams['animation.embed_limit'] = 2**128
+
+# Utilizamos los siguientes paquetes para el manejo de valores numéricos.
 import pandas as pd
 import numpy as np
 
+# Utilizamos time y datetime para medir el tiempo de ejecución de nuestro algoritmo.
 import time
 import datetime
 
-# Definimos la clase del agente
+# Definimos la clase del agente.
 class Car(Agent):
     def __init__(self, unique_id, model, x, y, signal):
         super().__init__(unique_id, model)
@@ -31,49 +42,45 @@ class Car(Agent):
         self.in_road = 1
         self.signal = signal
         self.reduce_velocity = 6
+        self.counter = 0
 
+    # Este método detiene al agente seleccionado.
     def stop(self):
         if self.reduce_velocity % 2 == 0 and self.reduce_velocity >= 0:
             self.velocity -= 1
         if self.reduce_velocity != -1:
             self.reduce_velocity -= 1
 
+    # Este método cambia al agente a un carril disponible.
     def change_lane(self):
         self_y, self_x = self.pos
-
         neighbors = self.model.grid.get_neighbors(self.pos, moore = True, include_center = False, radius = 5)
         for neighbor in neighbors:
             y, x = neighbor.pos
-
-            # Checar carril superior
             if (y == self_y - 1) and not (self_x - 5 > x < self_x + 2):
                 self.model.grid.move_agent(self, (self_y - 1, self_x + 2))
-            # Checar carril inferior
             elif (y == self_y + 1) and not (self_x - 5 > x < self_x + 2):
                 self.model.grid.move_agent(self, (self_y + 1, self_x + 2))
             else:
                 rd_lane = np.random.choice([0, 2])
                 self.model.grid.move_agent(self, (rd_lane, self_x + 2))
 
+    # Este método especifica lo que debe hacer el agente en cada step.
     def step(self):
-        # Posición del agente
         self_y, self_x = self.pos
-
-        # If siguiente posición sigue dentro del grid
+        self.counter += 1
         if not (self.model.grid.out_of_bounds((self_y, self_x + self.velocity))):
-            # If la siguiente posición está vacía
             if self.model.grid.is_cell_empty((self_y, self_x + self.velocity)):
-                # El coche avanza
                 self.model.grid.move_agent(self, (self_y, self_x + self.velocity))
                 if self_x >= (self.model.grid.height * 0.4) and self.signal == True:
                     self.stop()
             else:
-                # Cambio de carril
                 if self.signal == False and self_y == 1:
                     self.change_lane()
         else:
             self.in_road = 0
 
+# Esta función nos permite obtener el estado de los diferentes agentes.
 def get_grid(model):
     grid = np.zeros((model.grid.width, model.grid.height))
     for (content, x, y) in model.grid.coord_iter():
@@ -83,7 +90,7 @@ def get_grid(model):
             grid[x][y] = 1
     return grid
 
-# Definimos la clase del modelo
+# Definimos la clase del modelo.
 class Road(Model):
     def __init__(self, width, height, num_cars):
         super().__init__()
@@ -93,19 +100,17 @@ class Road(Model):
         self.num_cars = num_cars
         self.current_id = 0
         self.lock = True
+        self.total_steps = 0
         self.grid = SingleGrid(width, height, False)
         self.schedule = BaseScheduler(self)
         self.datacollector = DataCollector(model_reporters={"Grid": get_grid})
 
+    # Este método define lo que debe hacer el modelo en cada step.
     def step(self):
         if self.num_cars > 0:
-            # Crear flujo irregular de coches
             flow_choice = np.random.choice([0, 1, 2, 3, 4])
-            
             if self.num_cars == self.total_cars:
                 flow_choice = 0
-            
-            # Colocar coches
             if flow_choice == 0 or flow_choice == 2 or flow_choice == 4:
                 y = np.random.choice([0, 1, 2])
                 chosen = False
@@ -116,36 +121,38 @@ class Road(Model):
                 self.schedule.add(car)
                 self.grid.place_agent(car, car.pos)
                 self.num_cars -= 1
-
         self.datacollector.collect(self)
         self.schedule.step()
-
-        # Eliminar coches que terminaron su recorrido
         for car in self.schedule.agent_buffer():
             if car.in_road == 0:
+                self.total_steps += car.counter
                 car.model.grid.remove_agent(car)
                 self.schedule.remove(car)
 
-# Definimos las dimensiones de la carretera
+# Definimos las dimensiones del grid.
 WIDTH = 3
 HEIGHT = 250
 
-# Definimos el número de agentes
-NUM_CARS = 50
+# Definimos el número de agentes.
+NUM_CARS = 850
 
-# Definimos el número máximo de ejecuciones
+# Definimos el número máximo de ejecuciones.
 MAX_GENERATIONS = 1900
 
-# Registramos el tiempo de inicio y ejecutamos la simulación
-# start_time = time.time()
+# Registramos el tiempo de inicio y ejecutamos la simulación.
+start_time = time.time()
 model = Road(WIDTH, HEIGHT, NUM_CARS)
 # for i in range (MAX_GENERATIONS):
 #     model.step()
 
-# Imprimimos el tiempo que le tomó correr al modelo
-# print('Tiempo de ejecución:', str(datetime.timedelta(seconds=(time.time() - start_time))))
+# Imprimimos los steps promedo que le toma a los agentes recorrer su carril.
+avg_time = model.total_steps / (model.total_cars - 1)
+print('Tiempo promedio de traslado: ', avg_time)
 
-# Simulacion gráfica
+# Imprimimos el tiempo que le tomó correr al modelo.
+print('Tiempo de ejecución:', str(datetime.timedelta(seconds=(time.time() - start_time))))
+
+# Simulacion gráfica.
 # all_grid = model.datacollector.get_model_vars_dataframe()
 
 # fig, axs = plt.subplots(figsize=(15, 5))
