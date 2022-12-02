@@ -174,12 +174,6 @@ def ModelAgent_Data(model):
             "lane" : int(lane)
         }
         agent_data.append(aux)
-    #vars
-    vars = {
-        "agents_data" : agent_data
-    }
-
-    json.dumps(vars, sort_keys=True)
 
     model.step()
 
@@ -196,7 +190,7 @@ class Server(BaseHTTPRequestHandler):
         jsonOut = ModelAgent_Data(model)
         
         self._set_response()
-        resp = "{\"data\":" + jsonOut + "}"
+        resp = "{\"agents\":" + jsonOut + "}"
         self.wfile.write(resp.encode('utf-8'))
 
 def run(server_class=HTTPServer, handler_class=Server, port=8585):
